@@ -157,33 +157,7 @@ spec:
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
         branchName: managed-namespace-${{ parameters.name }}
         token: ${{ secrets.USER_OAUTH_TOKEN }}
-        description: |
-          ## ManagedNamespace: ${{ parameters.name }}
-
-          **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
-
-          **Created by:** @${{ user.entity.spec.profile.displayName || user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})
-
-          ### RBAC Configuration
-
-          **Owners:**
-          ```
-          ${{ parameters.owners | join('\n') }}
-          ```
-
-          **Maintainers:**
-          ```
-          ${{ (parameters.maintainers | length > 0) && parameters.maintainers | join('\n') || 'None configured' }}
-          ```
-
-          **Readers:**
-          ```
-          ${{ (parameters.readers | length > 0) && parameters.readers | join('\n') || 'None configured' }}
-          ```
-
-          ---
-
-          🤖 Generated with Backstage
+        description: "## ManagedNamespace: ${{ parameters.name }}\n\n**XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`\n\n**Created by:** @${{ user.entity.spec.profile.displayName || user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})\n\n### RBAC Configuration\n\n**Owners:**\n${{ parameters.owners | map(owner => '- ' + owner) | join('\n') }}\n\n**Maintainers:**\n${{ (parameters.maintainers && parameters.maintainers.length > 0) ? parameters.maintainers | map(m => '- ' + m) | join('\n') : '- None configured' }}\n\n**Readers:**\n${{ (parameters.readers && parameters.readers.length > 0) ? parameters.readers | map(r => '- ' + r) | join('\n') : '- None configured' }}\n\n---\n\n🤖 Generated with Backstage"
         targetPath: ${{ parameters.targetPath }}
 
     - id: publish-direct
