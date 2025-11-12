@@ -156,6 +156,7 @@ spec:
         repoUrl: ${{ parameters.repoUrl }}
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
         branchName: managed-namespace-${{ parameters.name }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
         description: |
           ## ManagedNamespace: ${{ parameters.name }}
 
@@ -186,6 +187,7 @@ spec:
       input:
         repoUrl: ${{ parameters.repoUrl }}
         defaultBranch: main
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
         gitCommitMessage: 'feat: add ManagedNamespace ${{ parameters.name }}'
         targetPath: ${{ parameters.targetPath }}
 
