@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: service-managednamespace-template
+  title: Managed Namespace Template
+  description: Backstage template for creating Kubernetes namespaces with automated RBAC configuration
+  annotations:
+    github.com/project-slug: open-service-portal/service-managednamespace-template
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - kubernetes
+    - namespace
+    - rbac
+    - crossplane
+    - infrastructure
+    - template
+  links:
+    - url: https://github.com/open-service-portal/service-managednamespace-template
+      title: GitHub Repository
+      icon: github
+spec:
+  type: template
+  lifecycle: production
+  owner: group:platform-team
+  system: infrastructure-platform

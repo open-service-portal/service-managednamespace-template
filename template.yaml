@@ -1,0 +1,262 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: managed-namespace
+  title: Managed Namespace with RBAC
+  description: Create a Kubernetes namespace with automated RBAC configuration for owners, maintainers, and readers
+  tags:
+    - kubernetes
+    - namespace
+    - rbac
+    - infrastructure
+    - crossplane
+    - recommended
+spec:
+  owner: group:platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Namespace Configuration
+      required:
+        - name
+        - owners
+      properties:
+        name:
+          title: Namespace Name
+          type: string
+          description: Name of the Kubernetes namespace to create (cannot be changed after creation)
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          ui:autofocus: true
+          ui:help: 'Lowercase alphanumeric characters and hyphens only, must start and end with alphanumeric'
+
+        owners:
+          title: Owners
+          type: array
+          description: At least 2 owners required. Owners have full control including namespace deletion.
+          minItems: 2
+          items:
+            type: string
+            ui:field: EntraIdUserPicker
+            ui:options:
+              # Custom field that validates against Microsoft Graph
+              validateEmail: true
+              caseSensitive: true
+              domain: openportal.dev
+          ui:options:
+            addable: true
+            orderable: false
+            removable: true
+
+        maintainers:
+          title: Maintainers (Optional)
+          type: array
+          description: Maintainers can create, edit, and delete resources within the namespace
+          items:
+            type: string
+            ui:field: EntraIdUserPicker
+            ui:options:
+              validateEmail: true
+              caseSensitive: true
+              domain: openportal.dev
+          ui:options:
+            addable: true
+            orderable: false
+            removable: true
+
+        readers:
+          title: Readers (Optional)
+          type: array
+          description: Readers have read-only access to all resources within the namespace
+          items:
+            type: string
+            ui:field: EntraIdUserPicker
+            ui:options:
+              validateEmail: true
+              caseSensitive: true
+              domain: openportal.dev
+          ui:options:
+            addable: true
+            orderable: false
+            removable: true
+
+    - title: Repository Configuration
+      required:
+        - repoUrl
+        - targetPath
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          description: Select the GitHub repository where the ManagedNamespace XR will be stored
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            allowedOwners:
+              - open-service-portal
+            # Show user's accessible repos
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+
+        targetPath:
+          title: Target Path
+          type: string
+          description: Path within the repository where the XR should be created
+          default: system/ManagedNamespace
+          ui:help: 'Default follows cluster-scoped layout: system/ManagedNamespace'
+
+        createPullRequest:
+          title: Create Pull Request
+          type: boolean
+          description: Create a pull request instead of committing directly to main branch
+          default: true
+          ui:widget: radio
+          ui:options:
+            - title: Create PR (recommended)
+              value: true
+            - title: Direct commit to main
+              value: false
+
+  steps:
+    # Step 1: Validate owners against Entra ID
+    - id: validate-owners
+      name: Validate Owners
+      action: openportal:entra:validate-users
+      input:
+        users: ${{ parameters.owners }}
+
+    # Step 2: Validate maintainers against Entra ID (if provided)
+    - id: validate-maintainers
+      name: Validate Maintainers
+      if: ${{ parameters.maintainers and parameters.maintainers.length > 0 }}
+      action: openportal:entra:validate-users
+      input:
+        users: ${{ parameters.maintainers }}
+
+    # Step 3: Validate readers against Entra ID (if provided)
+    - id: validate-readers
+      name: Validate Readers
+      if: ${{ parameters.readers and parameters.readers.length > 0 }}
+      action: openportal:entra:validate-users
+      input:
+        users: ${{ parameters.readers }}
+
+    # Step 4: Generate unique XR name
+    - id: generate-xr-name
+      name: Generate XR Name
+      action: portal:utils:generateId
+      input:
+        length: 8
+        type: hex
+
+    # Step 5: Create ManagedNamespace XR manifest
+    - id: fetch-template
+      name: Generate ManagedNamespace XR
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.name }}
+          xrName: ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
+          owners: ${{ steps['validate-owners'].output.validatedUsers }}
+          maintainers: ${{ steps['validate-maintainers'].output.validatedUsers if steps['validate-maintainers'] else [] }}
+          readers: ${{ steps['validate-readers'].output.validatedUsers if steps['validate-readers'] else [] }}
+          targetPath: ${{ parameters.targetPath }}
+
+    # Step 4: Publish to GitHub (PR or direct commit)
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github:pull-request
+      if: ${{ parameters.createPullRequest }}
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        title: 'feat: add ManagedNamespace ${{ parameters.name }}'
+        branchName: managed-namespace-${{ parameters.name }}
+        description: |
+          ## ManagedNamespace: ${{ parameters.name }}
+
+          **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
+
+          ### RBAC Configuration
+
+          **Owners:**
+          ${{ parameters.owners | dump(2) }}
+
+          **Maintainers:**
+          ${{ parameters.maintainers | dump(2) | default('None') }}
+
+          **Readers:**
+          ${{ parameters.readers | dump(2) | default('None') }}
+
+          ---
+
+          🤖 Generated with Backstage
+        targetPath: ${{ parameters.targetPath }}
+
+    - id: publish-direct
+      name: Publish Directly to Main
+      action: publish:github
+      if: ${{ not parameters.createPullRequest }}
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        gitCommitMessage: 'feat: add ManagedNamespace ${{ parameters.name }}'
+        targetPath: ${{ parameters.targetPath }}
+
+  output:
+    links:
+      - title: Pull Request
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: github
+        if: ${{ parameters.createPullRequest }}
+
+      - title: Repository
+        url: ${{ steps['publish-direct'].output.remoteUrl }}
+        icon: github
+        if: ${{ not parameters.createPullRequest }}
+
+      - title: View XR in Cluster
+        url: https://backstage.openportal.dev/catalog/default/resource/${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
+        icon: kubernetes
+
+    text:
+      - title: Next Steps
+        content: |
+          ## ManagedNamespace Created Successfully! 🎉
+
+          **Namespace:** `${{ parameters.name }}`
+          **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
+
+          ### What Happens Next?
+
+          1. **GitHub Action**: The XR manifest will trigger a GitHub Action workflow
+          2. **Crossplane Reconciliation**: Crossplane will create:
+             - Kubernetes namespace: `${{ parameters.name }}`
+             - ClusterRole for owners
+             - ClusterRoleBinding for owners
+             - RoleBinding for owners (admin access)
+             - RoleBinding for maintainers (edit access)
+             - RoleBinding for readers (view access)
+
+          3. **Access**: Once ready, users can access the namespace using kubectl:
+             ```bash
+             kubectl get namespaces ${{ parameters.name }}
+             kubectl get managednamespace ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
+             ```
+
+          ### RBAC Summary
+
+          **Owners** (${{ parameters.owners.length }} users):
+          - Can manage the ManagedNamespace XR itself
+          - Full admin access within the namespace
+
+          ${{ if parameters.maintainers }}
+          **Maintainers** (${{ parameters.maintainers.length }} users):
+          - Can create/edit/delete resources within the namespace
+          ${{ end }}
+
+          ${{ if parameters.readers }}
+          **Readers** (${{ parameters.readers.length }} users):
+          - Read-only access to namespace resources
+          ${{ end }}
