@@ -170,57 +170,5 @@ spec:
 
   output:
     links:
-      - title: Pull Request
-        url: ${{ steps['publish'].output.remoteUrl }}
-        icon: github
-        if: ${{ parameters.createPullRequest }}
-
-      - title: Repository
-        url: ${{ steps['publish-direct'].output.remoteUrl }}
-        icon: github
-        if: ${{ not parameters.createPullRequest }}
-
-      - title: View XR in Cluster
-        url: https://backstage.openportal.dev/catalog/default/resource/${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
-        icon: kubernetes
-
-    text:
-      - title: Next Steps
-        content: |
-          ## ManagedNamespace Created Successfully! 🎉
-
-          **Namespace:** `${{ parameters.name }}`
-          **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
-
-          ### What Happens Next?
-
-          1. **GitHub Action**: The XR manifest will trigger a GitHub Action workflow
-          2. **Crossplane Reconciliation**: Crossplane will create:
-             - Kubernetes namespace: `${{ parameters.name }}`
-             - ClusterRole for owners
-             - ClusterRoleBinding for owners
-             - RoleBinding for owners (admin access)
-             - RoleBinding for maintainers (edit access)
-             - RoleBinding for readers (view access)
-
-          3. **Access**: Once ready, users can access the namespace using kubectl:
-             ```bash
-             kubectl get namespaces ${{ parameters.name }}
-             kubectl get managednamespace ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
-             ```
-
-          ### RBAC Summary
-
-          **Owners** (${{ parameters.owners.length }} users):
-          - Can manage the ManagedNamespace XR itself
-          - Full admin access within the namespace
-
-          ${{ if parameters.maintainers }}
-          **Maintainers** (${{ parameters.maintainers.length }} users):
-          - Can create/edit/delete resources within the namespace
-          ${{ end }}
-
-          ${{ if parameters.readers }}
-          **Readers** (${{ parameters.readers.length }} users):
-          - Read-only access to namespace resources
-          ${{ end }}
+      - url: ${{steps.publish.output.remoteUrl}}
+        title: "Go to PR"
