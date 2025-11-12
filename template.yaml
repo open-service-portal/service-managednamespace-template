@@ -158,6 +158,27 @@ spec:
         branchName: managed-namespace-${{ parameters.name }}
         token: ${{ secrets.USER_OAUTH_TOKEN }}
         description: >
+          ## DEBUG USER INFO
+
+
+          **metadata.name:** ${{ user.entity.metadata.name }}
+
+          **metadata.namespace:** ${{ user.entity.metadata.namespace }}
+
+          **metadata.title:** ${{ user.entity.metadata.title }}
+
+          **spec.profile.displayName:** ${{ user.entity.spec.profile.displayName }}
+
+          **spec.profile.email:** ${{ user.entity.spec.profile.email }}
+
+          **spec.memberOf:** ${{ user.entity.spec.memberOf }}
+
+          **annotations:** ${{ user.entity.metadata.annotations }}
+
+
+          ---
+
+
           ## ManagedNamespace: ${{ parameters.name }}
 
           **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
