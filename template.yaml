@@ -158,40 +158,11 @@ spec:
         branchName: managed-namespace-${{ parameters.name }}
         token: ${{ secrets.USER_OAUTH_TOKEN }}
         description: >
-          ## DEBUG USER INFO
-
-
-          **metadata.name:** ${{ user.entity.metadata.name }}
-
-          **metadata.namespace:** ${{ user.entity.metadata.namespace }}
-
-          **metadata.title:** ${{ user.entity.metadata.title }}
-
-          **spec.profile.displayName:** ${{ user.entity.spec.profile.displayName }}
-
-          **spec.profile.email:** ${{ user.entity.spec.profile.email }}
-
-          **spec.memberOf:** ${{ user.entity.spec.memberOf }}
-
-          **annotations (raw):** ${{ user.entity.metadata.annotations }}
-
-          **annotations (json):** ${{ user.entity.metadata.annotations | tojson }}
-
-          **github.com/user-login:** ${{ user.entity.metadata.annotations['github.com/user-login'] }}
-
-          **github.com/username:** ${{ user.entity.metadata.annotations['github.com/username'] }}
-
-          **microsoft.com/email:** ${{ user.entity.metadata.annotations['microsoft.com/email'] }}
-
-
-          ---
-
-
           ## ManagedNamespace: ${{ parameters.name }}
 
           **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
 
-          **Created by:** @${{ user.entity.spec.profile.displayName or user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})
+          **Created by:** ${{ user.entity.spec.profile.displayName or user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})
 
           ### RBAC Configuration
 
