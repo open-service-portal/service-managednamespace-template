@@ -193,5 +193,9 @@ spec:
 
   output:
     links:
-      - title: ${{ parameters.createPullRequest && 'View Pull Request' || 'View Repository' }}
-        url: ${{ parameters.createPullRequest && steps.publish.output.remoteUrl || steps['publish-direct'].output.remoteUrl }}
+      - title: View Pull Request
+        url: ${{ steps.publish.output.remoteUrl }}
+        if: ${{ parameters.createPullRequest }}
+      - title: View Repository
+        url: ${{ steps['publish-direct'].output.remoteUrl }}
+        if: ${{ not parameters.createPullRequest }}
