@@ -4,15 +4,15 @@
 apiVersion: openportal.dev/v1alpha1
 kind: ManagedNamespace
 metadata:
-  name: ${{ values.xrName }}
+  name: {{ values.xrName }}
   labels:
     managed-by: backstage
-    namespace-name: ${{ values.name }}
+    namespace-name: {{ values.name }}
   annotations:
-    backstage.io/created-by: ${{ user.entity.metadata.name }}
+    backstage.io/created-by: {{ user.entity.metadata.name }}
 spec:
   # Namespace name
-  name: ${{ values.name }}
+  name: {{ values.name }}
 
   # RBAC Configuration
   # All email addresses are validated against Microsoft Entra ID
