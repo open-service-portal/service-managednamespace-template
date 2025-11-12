@@ -5,6 +5,7 @@ metadata:
   title: Managed Namespace with RBAC
   description: Create a Kubernetes namespace with automated RBAC configuration for owners, maintainers, and readers
   annotations:
+    backstage.io/managed-by-location: url:https://github.com/open-service-portal/service-managednamespace-template/blob/main/template.yaml
     backstage.io/source-location: url:https://github.com/open-service-portal/service-managednamespace-template/tree/main/
   tags:
     - kubernetes
