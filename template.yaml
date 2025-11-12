@@ -167,13 +167,19 @@ spec:
           ### RBAC Configuration
 
           **Owners:**
-          ${{ parameters.owners | dump(2) }}
+          ```
+          ${{ parameters.owners | join('\n') }}
+          ```
 
           **Maintainers:**
-          ${{ parameters.maintainers | dump(2) | default('None') }}
+          ```
+          ${{ (parameters.maintainers | length > 0) && parameters.maintainers | join('\n') || 'None configured' }}
+          ```
 
           **Readers:**
-          ${{ parameters.readers | dump(2) | default('None') }}
+          ```
+          ${{ (parameters.readers | length > 0) && parameters.readers | join('\n') || 'None configured' }}
+          ```
 
           ---
 
