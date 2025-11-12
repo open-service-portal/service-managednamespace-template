@@ -157,7 +157,7 @@ spec:
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
         branchName: managed-namespace-${{ parameters.name }}
         token: ${{ secrets.USER_OAUTH_TOKEN }}
-        description: |
+        description: >
           ## ManagedNamespace: ${{ parameters.name }}
 
           **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
