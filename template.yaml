@@ -173,7 +173,15 @@ spec:
 
           **spec.memberOf:** ${{ user.entity.spec.memberOf }}
 
-          **annotations:** ${{ user.entity.metadata.annotations }}
+          **annotations (raw):** ${{ user.entity.metadata.annotations }}
+
+          **annotations (json):** ${{ user.entity.metadata.annotations | tojson }}
+
+          **github.com/user-login:** ${{ user.entity.metadata.annotations['github.com/user-login'] }}
+
+          **github.com/username:** ${{ user.entity.metadata.annotations['github.com/username'] }}
+
+          **microsoft.com/email:** ${{ user.entity.metadata.annotations['microsoft.com/email'] }}
 
 
           ---
