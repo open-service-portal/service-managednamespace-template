@@ -3,14 +3,7 @@ kind: Template
 metadata:
   name: managed-namespace
   title: Managed Namespace with RBAC
-  description: |
-    Create a Kubernetes namespace with automated RBAC configuration for owners, maintainers, and readers.
-
-    ⚠️ **GitHub Authentication Required**
-    This template creates a Pull Request using YOUR GitHub account.
-    Please ensure you are signed in with GitHub before proceeding.
-
-    📋 To check: Click your profile icon → Settings → Authentication Providers
+  description: Create a Kubernetes namespace with automated RBAC configuration for owners, maintainers, and readers
   annotations:
     backstage.io/managed-by-location: url:https://github.com/open-service-portal/service-managednamespace-template/blob/main/template.yaml
     backstage.io/source-location: url:https://github.com/open-service-portal/service-managednamespace-template/tree/main/
@@ -116,16 +109,7 @@ spec:
               value: false
 
   steps:
-    # Step 1: Validate GitHub authentication
-    - id: validate-github-auth
-      name: Verify GitHub Connection
-      action: portal:validate:github-auth
-      input:
-        token: ${{ secrets.USER_OAUTH_TOKEN }}
-        userEmail: ${{ user.entity.spec.profile.email }}
-        userName: ${{ user.entity.spec.profile.displayName }}
-
-    # Step 2: Generate unique XR name
+    # Step 1: Generate unique XR name
     - id: generate-xr-name
       name: Generate XR Name
       action: portal:utils:generateId
@@ -133,7 +117,7 @@ spec:
         length: 8
         type: hex
 
-    # Step 3: Create ManagedNamespace XR manifest
+    # Step 2: Create ManagedNamespace XR manifest
     - id: fetch-template
       name: Generate ManagedNamespace XR
       action: fetch:template
@@ -147,30 +131,7 @@ spec:
           readers: ${{ parameters.readers | default([]) }}
           targetPath: ${{ parameters.targetPath }}
 
-    # Step 3b: Generate PR description
-    - id: fetch-pr-template
-      name: Generate PR Description
-      action: fetch:template
-      input:
-        url: ./pr-template
-        targetPath: ./pr-description-temp
-        values:
-          namespaceName: ${{ parameters.name }}
-          xrName: ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
-          userName: ${{ user.entity.spec.profile.displayName || user.entity.metadata.name }}
-          userEmail: ${{ user.entity.spec.profile.email }}
-          owners: ${{ parameters.owners }}
-          maintainers: ${{ parameters.maintainers | default([]) }}
-          readers: ${{ parameters.readers | default([]) }}
-
-    # Step 3c: Read PR description
-    - id: read-pr-description
-      name: Read PR Description
-      action: fs:read
-      input:
-        path: pr-description-temp/PULL_REQUEST_BODY.md
-
-    # Step 4: Publish to GitHub (PR or direct commit)
+    # Step 3: Publish to GitHub (PR or direct commit)
     - id: publish
       name: Publish to GitHub
       action: publish:github:pull-request
@@ -179,8 +140,25 @@ spec:
         repoUrl: ${{ parameters.repoUrl }}
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
         branchName: managed-namespace-${{ parameters.name }}
-        token: ${{ secrets.USER_OAUTH_TOKEN }}
-        description: ${{ steps['read-pr-description'].output.content }}
+        description: |
+          ## ManagedNamespace: ${{ parameters.name }}
+
+          **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
+
+          ### RBAC Configuration
+
+          **Owners:**
+          ${{ parameters.owners | dump(2) }}
+
+          **Maintainers:**
+          ${{ parameters.maintainers | dump(2) | default('None') }}
+
+          **Readers:**
+          ${{ parameters.readers | dump(2) | default('None') }}
+
+          ---
+
+          🤖 Generated with Backstage
         targetPath: ${{ parameters.targetPath }}
 
     - id: publish-direct
@@ -190,11 +168,5 @@ spec:
       input:
         repoUrl: ${{ parameters.repoUrl }}
         defaultBranch: main
-        token: ${{ secrets.USER_OAUTH_TOKEN }}
         gitCommitMessage: 'feat: add ManagedNamespace ${{ parameters.name }}'
         targetPath: ${{ parameters.targetPath }}
-
-  output:
-    links:
-      - title: ${{ parameters.createPullRequest && 'View Pull Request' || 'View Repository' }}
-        url: ${{ parameters.createPullRequest && steps.publish.output.remoteUrl || steps['publish-direct'].output.remoteUrl }}
