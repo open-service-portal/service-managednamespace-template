@@ -162,18 +162,24 @@ spec:
 
           **XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`
 
-          **Created by:** @${{ user.entity.spec.profile.displayName || user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})
+          **Created by:** @${{ user.entity.spec.profile.displayName or user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})
 
           ### RBAC Configuration
 
           **Owners:**
-          ${{ parameters.owners | dump(2) }}
+
+          ${{ parameters.owners | join(', ') }}
+
 
           **Maintainers:**
-          ${{ parameters.maintainers | dump(2) | default('None') }}
+
+          ${{ parameters.maintainers | join(', ') if parameters.maintainers | length > 0 else 'None configured' }}
+
 
           **Readers:**
-          ${{ parameters.readers | dump(2) | default('None') }}
+
+          ${{ parameters.readers | join(', ') if parameters.readers | length > 0 else 'None configured' }}
+
 
           ---
 
