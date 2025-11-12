@@ -103,18 +103,6 @@ spec:
           default: system/ManagedNamespace
           ui:help: 'Default follows cluster-scoped layout: system/ManagedNamespace'
 
-        createPullRequest:
-          title: Create Pull Request
-          type: boolean
-          description: Create a pull request instead of committing directly to main branch
-          default: true
-          ui:widget: radio
-          ui:options:
-            - title: Create PR (recommended)
-              value: true
-            - title: Direct commit to main
-              value: false
-
   steps:
     # Step 1: Validate GitHub authentication
     - id: validate-github-auth
@@ -147,11 +135,10 @@ spec:
           readers: ${{ parameters.readers | default([]) }}
           targetPath: ${{ parameters.targetPath }}
 
-    # Step 4: Publish to GitHub (PR or direct commit)
+    # Step 4: Publish to GitHub as Pull Request
     - id: publish
-      name: Publish to GitHub
+      name: Create Pull Request
       action: publish:github:pull-request
-      if: ${{ parameters.createPullRequest }}
       input:
         repoUrl: ${{ parameters.repoUrl }}
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
@@ -186,22 +173,7 @@ spec:
           🤖 Generated with Backstage
         targetPath: ${{ parameters.targetPath }}
 
-    - id: publish-direct
-      name: Publish Directly to Main
-      action: publish:github
-      if: ${{ not parameters.createPullRequest }}
-      input:
-        repoUrl: ${{ parameters.repoUrl }}
-        defaultBranch: main
-        token: ${{ secrets.USER_OAUTH_TOKEN }}
-        gitCommitMessage: 'feat: add ManagedNamespace ${{ parameters.name }}'
-        targetPath: ${{ parameters.targetPath }}
-
   output:
     links:
       - title: View Pull Request
         url: ${{ steps.publish.output.remoteUrl }}
-        if: ${{ parameters.createPullRequest }}
-      - title: View Repository
-        url: ${{ steps['publish-direct'].output.remoteUrl }}
-        if: ${{ not parameters.createPullRequest }}
