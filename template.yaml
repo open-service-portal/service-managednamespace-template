@@ -37,12 +37,7 @@ spec:
           minItems: 2
           items:
             type: string
-            ui:field: EntraIdUserPicker
-            ui:options:
-              # Custom field that validates against Microsoft Graph
-              validateEmail: true
-              caseSensitive: true
-              domain: openportal.dev
+            ui:field: EntraIdEmailPicker
           ui:options:
             addable: true
             orderable: false
@@ -54,11 +49,7 @@ spec:
           description: Maintainers can create, edit, and delete resources within the namespace
           items:
             type: string
-            ui:field: EntraIdUserPicker
-            ui:options:
-              validateEmail: true
-              caseSensitive: true
-              domain: openportal.dev
+            ui:field: EntraIdEmailPicker
           ui:options:
             addable: true
             orderable: false
@@ -70,11 +61,7 @@ spec:
           description: Readers have read-only access to all resources within the namespace
           items:
             type: string
-            ui:field: EntraIdUserPicker
-            ui:options:
-              validateEmail: true
-              caseSensitive: true
-              domain: openportal.dev
+            ui:field: EntraIdEmailPicker
           ui:options:
             addable: true
             orderable: false
@@ -119,30 +106,7 @@ spec:
               value: false
 
   steps:
-    # Step 1: Validate owners against Entra ID
-    - id: validate-owners
-      name: Validate Owners
-      action: openportal:entra:validate-users
-      input:
-        users: ${{ parameters.owners }}
-
-    # Step 2: Validate maintainers against Entra ID (if provided)
-    - id: validate-maintainers
-      name: Validate Maintainers
-      if: ${{ parameters.maintainers and parameters.maintainers.length > 0 }}
-      action: openportal:entra:validate-users
-      input:
-        users: ${{ parameters.maintainers }}
-
-    # Step 3: Validate readers against Entra ID (if provided)
-    - id: validate-readers
-      name: Validate Readers
-      if: ${{ parameters.readers and parameters.readers.length > 0 }}
-      action: openportal:entra:validate-users
-      input:
-        users: ${{ parameters.readers }}
-
-    # Step 4: Generate unique XR name
+    # Step 1: Generate unique XR name
     - id: generate-xr-name
       name: Generate XR Name
       action: portal:utils:generateId
@@ -150,7 +114,7 @@ spec:
         length: 8
         type: hex
 
-    # Step 5: Create ManagedNamespace XR manifest
+    # Step 2: Create ManagedNamespace XR manifest
     - id: fetch-template
       name: Generate ManagedNamespace XR
       action: fetch:template
@@ -159,12 +123,12 @@ spec:
         values:
           name: ${{ parameters.name }}
           xrName: ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
-          owners: ${{ steps['validate-owners'].output.validatedUsers }}
-          maintainers: ${{ steps['validate-maintainers'].output.validatedUsers if steps['validate-maintainers'] else [] }}
-          readers: ${{ steps['validate-readers'].output.validatedUsers if steps['validate-readers'] else [] }}
+          owners: ${{ parameters.owners }}
+          maintainers: ${{ parameters.maintainers | default([]) }}
+          readers: ${{ parameters.readers | default([]) }}
           targetPath: ${{ parameters.targetPath }}
 
-    # Step 4: Publish to GitHub (PR or direct commit)
+    # Step 3: Publish to GitHub (PR or direct commit)
     - id: publish
       name: Publish to GitHub
       action: publish:github:pull-request
