@@ -37,7 +37,7 @@ spec:
           minItems: 2
           items:
             type: string
-            ui:field: EntraIdEmailPicker
+            ui:field: EntraIdEntityPicker
           ui:options:
             addable: true
             orderable: false
@@ -49,7 +49,7 @@ spec:
           description: Maintainers can create, edit, and delete resources within the namespace
           items:
             type: string
-            ui:field: EntraIdEmailPicker
+            ui:field: EntraIdEntityPicker
           ui:options:
             addable: true
             orderable: false
@@ -61,7 +61,7 @@ spec:
           description: Readers have read-only access to all resources within the namespace
           items:
             type: string
-            ui:field: EntraIdEmailPicker
+            ui:field: EntraIdEntityPicker
           ui:options:
             addable: true
             orderable: false
