@@ -147,6 +147,29 @@ spec:
           readers: ${{ parameters.readers | default([]) }}
           targetPath: ${{ parameters.targetPath }}
 
+    # Step 3b: Generate PR description
+    - id: fetch-pr-template
+      name: Generate PR Description
+      action: fetch:template
+      input:
+        url: ./pr-template
+        targetPath: ./pr-description-temp
+        values:
+          namespaceName: ${{ parameters.name }}
+          xrName: ${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}
+          userName: ${{ user.entity.spec.profile.displayName || user.entity.metadata.name }}
+          userEmail: ${{ user.entity.spec.profile.email }}
+          owners: ${{ parameters.owners }}
+          maintainers: ${{ parameters.maintainers | default([]) }}
+          readers: ${{ parameters.readers | default([]) }}
+
+    # Step 3c: Read PR description
+    - id: read-pr-description
+      name: Read PR Description
+      action: fs:read
+      input:
+        path: pr-description-temp/PULL_REQUEST_BODY.md
+
     # Step 4: Publish to GitHub (PR or direct commit)
     - id: publish
       name: Publish to GitHub
@@ -157,7 +180,7 @@ spec:
         title: 'feat: add ManagedNamespace ${{ parameters.name }}'
         branchName: managed-namespace-${{ parameters.name }}
         token: ${{ secrets.USER_OAUTH_TOKEN }}
-        description: "## ManagedNamespace: ${{ parameters.name }}\n\n**XR Name:** `${{ parameters.name }}-${{ steps['generate-xr-name'].output.id }}`\n\n**Created by:** @${{ user.entity.spec.profile.displayName || user.entity.metadata.name }} (${{ user.entity.spec.profile.email }})\n\n### RBAC Configuration\n\n**Owners:**\n${{ parameters.owners | map(owner => '- ' + owner) | join('\n') }}\n\n**Maintainers:**\n${{ (parameters.maintainers && parameters.maintainers.length > 0) ? parameters.maintainers | map(m => '- ' + m) | join('\n') : '- None configured' }}\n\n**Readers:**\n${{ (parameters.readers && parameters.readers.length > 0) ? parameters.readers | map(r => '- ' + r) | join('\n') : '- None configured' }}\n\n---\n\n🤖 Generated with Backstage"
+        description: ${{ steps['read-pr-description'].output.content }}
         targetPath: ${{ parameters.targetPath }}
 
     - id: publish-direct
