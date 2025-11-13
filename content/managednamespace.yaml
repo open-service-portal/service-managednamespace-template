@@ -21,24 +21,24 @@ spec:
   # - Can manage the ManagedNamespace XR itself
   # - Full admin access within the namespace
   owners:
-{%- for owner in values.owners %}
+{% for owner in values.owners -%}
     - {{ owner }}
-{%- endfor %}
-{%- if values.maintainers and values.maintainers | length > 0 %}
+{% endfor -%}
+{% if values.maintainers and values.maintainers | length > 0 -%}
 
   # Maintainers (optional)
   # - Can create, edit, and delete resources within the namespace
   maintainers:
-{%- for maintainer in values.maintainers %}
+{% for maintainer in values.maintainers -%}
     - {{ maintainer }}
-{%- endfor %}
-{%- endif %}
-{%- if values.readers and values.readers | length > 0 %}
+{% endfor -%}
+{% endif -%}
+{% if values.readers and values.readers | length > 0 -%}
 
   # Readers (optional)
   # - Read-only access to all resources within the namespace
   readers:
-{%- for reader in values.readers %}
+{% for reader in values.readers -%}
     - {{ reader }}
-{%- endfor %}
-{%- endif %}
+{% endfor -%}
+{% endif -%}
