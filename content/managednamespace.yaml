@@ -22,7 +22,7 @@ spec:
   # - Full admin access within the namespace
   owners:
 {% for owner in values.owners -%}
-    - {{ owner }}
+    - ${{ owner }}
 {% endfor -%}
 {% if values.maintainers and values.maintainers | length > 0 -%}
 
@@ -30,7 +30,7 @@ spec:
   # - Can create, edit, and delete resources within the namespace
   maintainers:
 {% for maintainer in values.maintainers -%}
-    - {{ maintainer }}
+    - ${{ maintainer }}
 {% endfor -%}
 {% endif -%}
 {% if values.readers and values.readers | length > 0 -%}
@@ -39,6 +39,6 @@ spec:
   # - Read-only access to all resources within the namespace
   readers:
 {% for reader in values.readers -%}
-    - {{ reader }}
+    - ${{ reader }}
 {% endfor -%}
 {% endif -%}
